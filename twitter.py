@@ -1,8 +1,9 @@
-import tweepy
-import sys
 import csv
 import os
-
+import sys
+import random
+import pandas as pd
+import tweepy
 
 sample = {
     "data": [
@@ -180,20 +181,65 @@ consumer_secret = ''
 access_token = ''
 access_token_secret = ''
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
+#auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+#auth.set_access_token(access_token, access_token_secret)
 
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)# https://developer.twitter.com/en/docs/twitter-api/rate-limits -> 1 tweet per sec
+#api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)# https://developer.twitter.com/en/docs/twitter-api/rate-limits -> 1 tweet per sec
+
+
+numOfTotalTweets = 10000
+
+dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] #https://stackoverflow.com/questions/7781545/how-to-get-all-folder-only-in-a-given-path-in-python
+print(dirs)
+
+numOfTweetsPerFolder = round(numOfTotalTweets/len(dirs))
+
+print(numOfTweetsPerFolder)
+
+
+def getRandomIndices(amount, length):
+    inxAmount = amount
+    if amount > length:
+        inxAmount = length
+    indices = []
+    for i in range(0, inxAmount):
+        randInt = random.randint(0, inxAmount-1)
+        while randInt in indices:
+            randInt = random.randint(0, inxAmount-1)
+        indices.append(randInt)
+    return indices
 
 
 tweet_ids = {}
 
-for file in os.listdir("./tweet_id_txts"):
-    if not file.startswith("."):
-        with open(f"./tweet_id_txts/{file}", "r") as f:
-            tweet_ids[file] = f.read().split("\n")
+for folder in dirs:
+    files = next(os.walk(f"RussoUkrainianWar_Dataset-main/{folder}"))[2]
+    numFiles = len(files)
+    tweetsPerFile = round(numOfTweetsPerFolder/numFiles)
+    for file in files:
+        if not file.startswith("."):
+            with open(f"./RussoUkrainianWar_Dataset-main/{folder}/{file}", "r") as f:
+                arr = []
+                if folder in tweet_ids.keys():
+                    arr = tweet_ids[folder]
+                newIds = f.read().split("\n")
+                rndmIndices = getRandomIndices(tweetsPerFile, len(newIds))
+                for idx in rndmIndices:
+                    arr.append(newIds[idx])
+                tweet_ids[folder] = arr
 
-#print(tweet_ids)
+print(tweet_ids)
+#Write ids to csv
+
+#https://stackoverflow.com/questions/65429943/python-dictionary-with-arrays-to-csv-file
+
+for month in tweet_ids.keys():
+    if not os.path.exists('output'):
+        os.mkdir('output')
+    with open(f'./output/{month}-ids.txt', 'w') as f: 
+        for tweet in tweet_ids[month]:
+            f.writelines(tweet+"\n") #TODO: ACHTUNG, LETZTE ZEILE DER DATEIEN ENTHÄLT EINEN \n CHARACTER -----------------------------------------------
+            
 
 
 tweets = {}
