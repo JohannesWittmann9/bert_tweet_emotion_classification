@@ -216,6 +216,7 @@ for folder in dirs:
     files = next(os.walk(f"RussoUkrainianWar_Dataset-main/{folder}"))[2]
     numFiles = len(files)
     tweetsPerFile = round(numOfTweetsPerFolder/numFiles)
+    print(tweetsPerFile*numFiles)
     for file in files:
         if not file.startswith("."):
             with open(f"./RussoUkrainianWar_Dataset-main/{folder}/{file}", "r") as f:
@@ -228,7 +229,7 @@ for folder in dirs:
                     arr.append(newIds[idx])
                 tweet_ids[folder] = arr
 
-print(tweet_ids)
+#print(tweet_ids)
 #Write ids to csv
 
 #https://stackoverflow.com/questions/65429943/python-dictionary-with-arrays-to-csv-file
