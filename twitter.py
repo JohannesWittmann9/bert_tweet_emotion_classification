@@ -192,7 +192,7 @@ numOfTotalTweets = 10000
 dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] #https://stackoverflow.com/questions/7781545/how-to-get-all-folder-only-in-a-given-path-in-python
 print(dirs)
 
-numOfTweetsPerFolder = round(numOfTotalTweets/len(dirs))
+numOfTweetsPerFolder = int(numOfTotalTweets/len(dirs))
 
 print(numOfTweetsPerFolder)
 
@@ -215,7 +215,7 @@ tweet_ids = {}
 for folder in dirs:
     files = next(os.walk(f"RussoUkrainianWar_Dataset-main/{folder}"))[2]
     numFiles = len(files)
-    tweetsPerFile = round(numOfTweetsPerFolder/numFiles)
+    tweetsPerFile = int(numOfTweetsPerFolder/numFiles)
     print(tweetsPerFile*numFiles)
     for file in files:
         if not file.startswith("."):
@@ -238,9 +238,12 @@ for month in tweet_ids.keys():
     if not os.path.exists('output'):
         os.mkdir('output')
     with open(f'./output/{month}-ids.txt', 'w') as f: 
-        for tweet in tweet_ids[month]:
-            f.writelines(tweet+"\n") #TODO: ACHTUNG, LETZTE ZEILE DER DATEIEN ENTHÄLT EINEN \n CHARACTER -----------------------------------------------
-            
+        for i in range(0, len(tweet_ids[month])):
+            tweet = tweet_ids[month][i]
+            if i < len(tweet_ids[month])-1:
+                f.writelines(tweet+"\n")
+            else:
+                f.writelines(tweet)
 
 
 tweets = {}
