@@ -1,3 +1,4 @@
+# Necessary imports
 import csv
 import os
 import sys
@@ -5,6 +6,7 @@ import random
 import pandas as pd
 import tweepy
 
+# Demo Info to test script
 sample = {
     "data": [
         {
@@ -169,11 +171,58 @@ sample = {
     }
 }
 
-
-#https://www.loginradius.com/blog/engineering/beginners-guide-to-tweepy/
-#https://stackoverflow.com/questions/44948628/how-to-take-all-tweets-in-a-hashtag-with-tweepy?answertab=scoredesc#tab-top
-#https://stackoverflow.com/questions/28384588/twitter-api-get-tweets-with-specific-id#28384699
-#https://medium.com/analytics-vidhya/fetch-tweets-using-their-ids-with-tweepy-twitter-api-and-python-ee7a22dcb845
+demo_user = {
+    "data": [
+        {
+            "id": "2244994945",
+            "name": "Twitter Dev",
+            "username": "TwitterDev",
+            "location": "127.0.0.1",
+            "entities": {
+                "url": {
+                    "urls": [
+                        {
+                            "start": 0,
+                            "end": 23,
+                            "url": "https://t.co/3ZX3TNiZCY",
+                            "expanded_url": "/content/developer-twitter/en/community",
+                            "display_url": "developer.twitter.com/en/community"
+                        }
+                    ]
+                },
+                "description": {
+                    "hashtags": [
+                        {
+                            "start": 23,
+                            "end": 30,
+                            "tag": "DevRel"
+                        },
+                        {
+                            "start": 113,
+                            "end": 130,
+                            "tag": "BlackLivesMatter"
+                        }
+                    ]
+                }
+            },
+            "verified": "true",
+            "description": "The voice of Twitter's #DevRel team, and your official source for updates, news, & events about Twitter's API. \n\n#BlackLivesMatter",
+            "url": "https://t.co/3ZX3TNiZCY",
+            "profile_image_url": "https://pbs.twimg.com/profile_images/1267175364003901441/tBZNFAgA_normal.jpg",
+            "protected": "false",
+            "pinned_tweet_id": "1255542774432063488",
+            "created_at": "2013-12-14T04:35:55.000Z"
+        }
+    ],
+    "includes": {
+        "tweets": [
+            {
+                "id": "1255542774432063488",
+                "text": "During these unprecedented times, what’s happening on Twitter can help the world better understand &amp; respond to the pandemic. \n\nWe're launching a free COVID-19 stream endpoint so qualified devs &amp; researchers can study the public conversation in real-time. https://t.co/BPqMcQzhId"
+            }
+        ]
+    }
+}
 
 # TODO: Insert API Keys below
 consumer_key = ''
@@ -184,19 +233,21 @@ access_token_secret = ''
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)# https://developer.twitter.com/en/docs/twitter-api/rate-limits -> 1 tweet per sec
+# Initialize tweepy api
+api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-
+# Set total number of retrieved tweets
 numOfTotalTweets = 10000
 
-dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] #https://stackoverflow.com/questions/7781545/how-to-get-all-folder-only-in-a-given-path-in-python
+# Twitter Dataset must be in the same directory as the script
+dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] 
 print(dirs)
 
 numOfTweetsPerFolder = int(numOfTotalTweets/len(dirs))
 
 print(numOfTweetsPerFolder)
 
-
+# Create random indices for choosing tweets per day
 def getRandomIndices(amount, length):
     inxAmount = amount
     if amount > length:
@@ -209,9 +260,10 @@ def getRandomIndices(amount, length):
         indices.append(randInt)
     return indices
 
-
+# Storing tweet ids by date
 tweet_ids = {}
 
+# Load and choose tweets
 for folder in dirs:
     files = next(os.walk(f"RussoUkrainianWar_Dataset-main/{folder}"))[2]
     numFiles = len(files)
@@ -229,11 +281,8 @@ for folder in dirs:
                     arr.append(newIds[idx])
                 tweet_ids[folder] = arr
 
-#print(tweet_ids)
-#Write ids to csv
 
-#https://stackoverflow.com/questions/65429943/python-dictionary-with-arrays-to-csv-file
-
+# Write files with chosen ids per month
 for month in tweet_ids.keys():
     if not os.path.exists('output'):
         os.mkdir('output')
@@ -247,7 +296,7 @@ for month in tweet_ids.keys():
 
 
 tweets = {}
-
+# Crawl Tweets and Userdata
 for date in tweet_ids:
     arr = []
     if date in tweets.keys():
@@ -255,22 +304,34 @@ for date in tweet_ids:
     for tweet_id in tweet_ids[date]:
         tweet = api.get_status(tweet_id)
         #tweet = sample
+        #user = demo_user
+        user = api.get_user(id) 
+        location = user["data"][0]["location"]
+        if location == "":
+            location = "NaN"
+        tweet["location"] = location
         arr.append(tweet)
     tweets[date] = arr
 
-#print(tweets)
-
-#https://developer.twitter.com/en/docs/twitter-api/data-dictionary/object-model/tweet
+# Write Tweetcontents and User location data to csv
 with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
     csvWriter = csv.writer(csvFile)
-    csvWriter.writerow(["id","created_at","text","lang"])
+    csvWriter.writerow(["id","created_at","text","lang","user_id","location"])
     for date in tweets.keys():
         for tweet in tweets[date]:
-            csvWriter.writerow([tweet["data"][0]["id"], tweet["data"][0]["created_at"], tweet["data"][0]["text"], tweet["data"][0]["lang"]])
+            csvWriter.writerow([tweet["data"][0]["id"], tweet["data"][0]["created_at"], tweet["data"][0]["text"], tweet["data"][0]["lang"], tweet["data"][0]["author_id"], tweet["location"]])
 
 
 
-# with open('tweets.csv', newline='', encoding="utf8") as csvfile:
-#      spamreader = csv.reader(csvfile)
-#      for row in spamreader:
-#          print(', '.join(row))
+
+#Sources:
+#https://www.loginradius.com/blog/engineering/beginners-guide-to-tweepy/
+#https://stackoverflow.com/questions/44948628/how-to-take-all-tweets-in-a-hashtag-with-tweepy?answertab=scoredesc#tab-top
+#https://stackoverflow.com/questions/28384588/twitter-api-get-tweets-with-specific-id#28384699
+#https://medium.com/analytics-vidhya/fetch-tweets-using-their-ids-with-tweepy-twitter-api-and-python-ee7a22dcb845
+#https://developer.twitter.com/en/docs/twitter-api/data-dictionary/object-model/user
+#https://stackoverflow.com/questions/65429943/python-dictionary-with-arrays-to-csv-file
+#https://www.geeksforgeeks.org/python-tweepy-getting-the-location-of-a-user/
+#https://developer.twitter.com/en/docs/twitter-api/data-dictionary/object-model/tweet
+#https://stackoverflow.com/questions/7781545/how-to-get-all-folder-only-in-a-given-path-in-python
+#https://developer.twitter.com/en/docs/twitter-api/rate-limits -> 1 tweet per sec
