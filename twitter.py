@@ -242,7 +242,7 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True) #, wait_on_rate_limit_notify=True
 
 # Set total number of retrieved tweets
-numOfTotalTweets = 100
+numOfTotalTweets = 1000
 
 # Twitter Dataset must be in the same directory as the script
 dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] 
@@ -301,7 +301,7 @@ for month in tweet_ids.keys():
 
 
 tweets = {}
-
+counter = 0
 # Crawl Tweets and Userdata
 for date in tweet_ids:
     arr = []
@@ -309,11 +309,21 @@ for date in tweet_ids:
         arr = tweets[date]
     for tweet_id in tweet_ids[date]:
         tweet_obj = {}
-        
+        counter = counter + 1
+        print("Trying to fetch data for tweet No."+counter)
         try:
             tweet = api.get_status(tweet_id)
         except tweepy.errors.NotFound:
             print("Not Found")
+            continue
+        except tweepy.errors.Forbidden:
+            print("user account suspended")
+            print("skipping tweet with id:"+tweet_id)
+            continue
+        except:
+            print("other error occured")
+            print("skipping id:"+ tweet_id)
+            continue
         tweet_obj["tweet"] = tweet
         #tweet = sample
         user = demo_user
@@ -334,17 +344,20 @@ with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
             if location == "":
                 location = "NaN"
             profile_location = user.profile_location
-            if profile_location == "":
+            if profile_location == "" or profile_location == None:
                 profile_location = "NaN"
             user_lang = user.lang
-            if user_lang == "":
+            if user_lang == "" or user_lang == None:
                 user_lang = "NaN"
             place_id = twet.geo
             if place_id != None:
                 place_id = tweet.geo["place_id"]
             if place_id == None:
                 place_id = "NaN"
-            csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location, profile_location, user.utc_offset, user_lang, place_id])
+            utc_offset = user.utc_offset
+            if utc_offset == "" or utc_offset == None:
+                utc_offset = "NaN"
+            csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location, profile_location, utc_offset, user_lang, place_id])
 
 
 
