@@ -316,8 +316,7 @@ for date in tweet_ids:
             print("Not Found")
         tweet_obj["tweet"] = tweet
         #tweet = sample
-        #user = demo_user
-        print(tweet.geo.place_id)
+        user = demo_user
         user = api.get_user(user_id = tweet.user.id) 
         tweet_obj["user"] = user
         arr.append(tweet_obj)
@@ -340,8 +339,10 @@ with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
             user_lang = user.lang
             if user_lang == "":
                 user_lang = "NaN"
-            place_id = twet.geo.place_id
-            if place_id == "None":
+            place_id = twet.geo
+            if place_id != None:
+                place_id = tweet.geo["place_id"]
+            if place_id == None:
                 place_id = "NaN"
             csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location, profile_location, user.utc_offset, user_lang, place_id])
 
