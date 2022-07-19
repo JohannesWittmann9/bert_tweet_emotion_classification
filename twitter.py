@@ -5,6 +5,7 @@ import sys
 import random
 import pandas as pd
 import tweepy
+from configparser import ConfigParser
 
 # Demo Info to test script
 sample = {
@@ -224,11 +225,15 @@ demo_user = {
     }
 }
 
-# TODO: Insert API Keys below
-consumer_key = ''
-consumer_secret = ''
-access_token = ''
-access_token_secret = ''
+# Load twitter developer keys and tokens through a local config file
+config = ConfigParser()
+config.read('./keys.cfg')
+
+consumer_key = config.get('twitter', 'consumer_key')
+consumer_secret = config.get('twitter', 'consumer_secret')
+access_token = config.get('twitter', 'access_token')
+access_token_secret = config.get('twitter', 'access_token_secret')
+bearer_token = config.get('twitter', 'bearer_token')
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
