@@ -242,7 +242,7 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 # Set total number of retrieved tweets
-numOfTotalTweets = 10000
+numOfTotalTweets = 1000
 
 # Twitter Dataset must be in the same directory as the script
 dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] 
