@@ -317,7 +317,7 @@ for date in tweet_ids:
         tweet_obj["tweet"] = tweet
         #tweet = sample
         #user = demo_user
-        # print(tweet.user.id)
+        print(tweet.geo.place_id)
         user = api.get_user(user_id = tweet.user.id) 
         tweet_obj["user"] = user
         arr.append(tweet_obj)
@@ -326,7 +326,7 @@ for date in tweet_ids:
 # Write Tweetcontents and User location data to csv
 with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
     csvWriter = csv.writer(csvFile)
-    csvWriter.writerow(["id","created_at","text","lang","user_id","location"])
+    csvWriter.writerow(["id", "created_at", "text", "lang", "user_id", "location", "profile_location", "utc_offset", "user_lang", "tweet_place_id"])
     for date in tweets.keys():
         for tweet in tweets[date]:
             user = tweet["user"]
@@ -334,7 +334,16 @@ with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
             location = user.location
             if location == "":
                 location = "NaN"
-            csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location])
+            profile_location = user.profile_location
+            if profile_location == "":
+                profile_location = "NaN"
+            user_lang = user.lang
+            if user_lang == "":
+                user_lang = "NaN"
+            place_id = twet.geo.place_id
+            if place_id == "None":
+                place_id = "NaN"
+            csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location, profile_location, user.utc_offset, user_lang, place_id])
 
 
 
