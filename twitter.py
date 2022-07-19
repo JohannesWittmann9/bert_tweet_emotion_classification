@@ -239,10 +239,10 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 
 # Initialize tweepy api
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+api = tweepy.API(auth, wait_on_rate_limit=True) #, wait_on_rate_limit_notify=True
 
 # Set total number of retrieved tweets
-numOfTotalTweets = 1000
+numOfTotalTweets = 100
 
 # Twitter Dataset must be in the same directory as the script
 dirs = next(os.walk("RussoUkrainianWar_Dataset-main"))[1] 
@@ -301,21 +301,26 @@ for month in tweet_ids.keys():
 
 
 tweets = {}
+
 # Crawl Tweets and Userdata
 for date in tweet_ids:
     arr = []
     if date in tweets.keys():
         arr = tweets[date]
     for tweet_id in tweet_ids[date]:
-        tweet = api.get_status(tweet_id)
+        tweet_obj = {}
+        
+        try:
+            tweet = api.get_status(tweet_id)
+        except tweepy.errors.NotFound:
+            print("Not Found")
+        tweet_obj["tweet"] = tweet
         #tweet = sample
         #user = demo_user
-        user = api.get_user(id) 
-        location = user["data"][0]["location"]
-        if location == "":
-            location = "NaN"
-        tweet["location"] = location
-        arr.append(tweet)
+        # print(tweet.user.id)
+        user = api.get_user(user_id = tweet.user.id) 
+        tweet_obj["user"] = user
+        arr.append(tweet_obj)
     tweets[date] = arr
 
 # Write Tweetcontents and User location data to csv
@@ -324,7 +329,12 @@ with open("tweets.csv", "w", encoding="utf8", newline="") as csvFile:
     csvWriter.writerow(["id","created_at","text","lang","user_id","location"])
     for date in tweets.keys():
         for tweet in tweets[date]:
-            csvWriter.writerow([tweet["data"][0]["id"], tweet["data"][0]["created_at"], tweet["data"][0]["text"], tweet["data"][0]["lang"], tweet["data"][0]["author_id"], tweet["location"]])
+            user = tweet["user"]
+            twet = tweet["tweet"]
+            location = user.location
+            if location == "":
+                location = "NaN"
+            csvWriter.writerow([twet.id, twet.created_at, twet.text, twet.lang, user.id, location])
 
 
 
