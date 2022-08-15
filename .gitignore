@@ -3,3 +3,4 @@ output/
 keys.cfg
 tweets.csv
 outputmodel/
+.ipynb_checkpoints/tweets-checkpoint.csv
